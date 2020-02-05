@@ -47,6 +47,32 @@ def load_raw_audio(audio_dir):
                 activates.append(activate)
     return activates, negatives, backgrounds
 
+# Load raw audio files for speech synthesis
+def load_raw_audio_with_folder(audio_dir):
+    activates = []
+    backgrounds = []
+    negatives = []
+    for category in os.listdir(audio_dir): # folder별로 파일 정리
+        category_dir = os.path.join(audio_dir, category)
+        print(category_dir)
+        if category == "background":
+            for filename in os.listdir(category_dir): # folder
+                if filename.endswith("mp3"):
+                    background = AudioSegment.from_mp3(os.path.join(category_dir, filename))
+                    backgrounds.append(background)
+        elif category == "snore":
+            for filename in os.listdir(category_dir): # folder
+                if filename.endswith("mp3"):
+                    activate = AudioSegment.from_mp3(os.path.join(category_dir, filename))
+                    activates.append(activate)
+        elif category == "negative":
+            for filename in os.listdir(category_dir): # folder
+                if filename.endswith("mp3"):
+                    negative = AudioSegment.from_mp3(os.path.join(category_dir, filename))
+                    negatives.append(negative)
+                    
+    return activates, negatives, backgrounds
+
 def make_beep_wav(wav, y, output_name):
     beep, _ = librosa.load('./data/beep.wav', sr = 44100)
     data, _ = librosa.load(wav, sr=44100)
