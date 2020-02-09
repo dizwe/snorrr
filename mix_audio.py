@@ -3,8 +3,6 @@ import numpy as np
 from td_utils import graph_spectrogram
 
 def get_random_time_segment(segment_ms, total_ms=10000.0):
-    print('\n\n\n\n\n'+str(total_ms)+str(segment_ms))
-    print('\n\n\n\n\n'+str(total_ms-segment_ms))
     segment_start = np.random.randint(low=0, high=total_ms-segment_ms)   # Make sure segment doesn't run past the 10sec background 
     segment_end = segment_start + segment_ms - 1
 

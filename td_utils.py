@@ -67,8 +67,9 @@ def load_raw_audio_with_folder(audio_dir):
                     activates.append(activate)
         elif category == "negative":
             for filename in os.listdir(category_dir): # folder
+                # negative는 librosa에서 cut 했는데 mp3로 저장했음에도 불구하고 wav로 되어있다.
                 if filename.endswith("mp3"):
-                    negative = AudioSegment.from_mp3(os.path.join(category_dir, filename))
+                    negative = AudioSegment.from_wav(os.path.join(category_dir, filename))
                     negatives.append(negative)
                     
     return activates, negatives, backgrounds
