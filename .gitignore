@@ -8,3 +8,5 @@ __pycache__/
 data/
 junk/
 my_model/
+demo/
+test_data/

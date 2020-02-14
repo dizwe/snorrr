@@ -75,18 +75,35 @@ def load_raw_audio_with_folder(audio_dir):
     return activates, negatives, backgrounds
 
 def make_beep_wav(wav, y, output_name):
-    beep, _ = librosa.load('./data/beep.wav', sr = 44100)
+    beep, _ = librosa.load('./check_sound/wow_long.wav', sr = 44100)
     data, _ = librosa.load(wav, sr=44100)
+
     length = y.shape[0]
+    one_size = int(len(data)/length)
     for i in range(1, length):
-        tmp = int(len(data)*(i)/length)
+        tmp = int(len(data)*(i)/length) # length 길이만큼 나누면 한 filter 크기를 나타내는거다!
+        
         t_1 = y[i-1]
         t = y[i]
-        if (t_1 == 0) and (t == 1):
-            if tmp > 22000 :
-                data[tmp-22000:tmp] =  beep[:22000]*0.5
+        
+        if (t_1 == 0) and (t == 1): # 딱 그구간만 틀어주면 된다?
+            # 이후 구간 1 개수 세기
+            one_num =0
+            while y[i]==1 and i<length-1:
+                one_num = one_num+1
+                i = i+1
+
+            # 그 구간만큼 빼서 1넣기
+            if tmp > one_num*one_size:
+                data[tmp-one_num*one_size:tmp] =  beep[:one_num*one_size]
             else:
                 data[:tmp] =  beep[:tmp]*0.5
+        # if (t == 1): # 딱 그구간만 틀어주면 된다?
+        #     print(tmp)
+        #     if tmp > one_size :
+        #         data[tmp-one_size:tmp] =  beep[:one_size]*0.5
+        #     else:
+        #         data[:tmp] =  beep[:tmp]*0.5
     librosa.output.write_wav(output_name, data, sr=44100)
 
 def output_postprocessing(outputs, th):
