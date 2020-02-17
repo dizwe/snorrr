@@ -94,10 +94,14 @@ def make_beep_wav(wav, y, output_name):
                 i = i+1
 
             # 그 구간만큼 빼서 1넣기
+            # mix하기 https://stackoverflow.com/questions/4039158/mixing-two-audio-files-together-with-python
             if tmp > one_num*one_size:
-                data[tmp-one_num*one_size:tmp] =  beep[:one_num*one_size]
+                # 테스트를 위해서는 실제 데이터와 beep데이터를 함께 들어야 하기 때문에 mix 하는것으로 수정
+                data[tmp-one_num*one_size:tmp] = (beep[:one_num*one_size]*0.1+data[tmp-one_num*one_size:tmp])/2
+                # data[tmp-one_num*one_size:tmp] = beep[:one_num*one_size]
             else:
-                data[:tmp] =  beep[:tmp]*0.5
+                # 테스트를 위해서는 실제 데이터와 beep데이터를 함께 들어야 하기 때문에 mix 하는것으로 수정
+                data[:tmp] =  (beep[:tmp]*0.1+data[:tmp])/2
         # if (t == 1): # 딱 그구간만 틀어주면 된다?
         #     print(tmp)
         #     if tmp > one_size :

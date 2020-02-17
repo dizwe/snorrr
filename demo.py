@@ -103,9 +103,10 @@ def main(file_name, idd=0):
 if __name__ == '__main__':
     for file in os.listdir(os.path.join('.','test_data')):
         # 1599 mix_14 6055 8773 851 8847 
-        file_name = os.path.join('.','test_data',file) #input('URL을 입력하세요: ')
-        idd = file #int(input('ID: '))
-        main(file_name, idd)
+        if file.endswith('mp3'):
+            file_name = os.path.join('.','test_data',file) #input('URL을 입력하세요: ')
+            idd = file #int(input('ID: '))
+            main(file_name, idd)
 
 
 
