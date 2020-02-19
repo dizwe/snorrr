@@ -108,9 +108,4 @@ if __name__ == '__main__':
             idd = file #int(input('ID: '))
             main(file_name, idd)
 
-
-
-
-
-
 # %%
