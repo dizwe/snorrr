@@ -10,3 +10,4 @@ junk/
 my_model/
 demo/
 test_data/
+*.csv

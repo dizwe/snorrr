@@ -47,6 +47,7 @@ def make_model(input_shape):
     return model  
 
 #%%
+import copy
 def anticipate_snore(file_name):
     X = []
     ## 여기서 nfft hop이 다라서 이상하게 된거 같음
@@ -59,7 +60,11 @@ def anticipate_snore(file_name):
     # print(bcolors.OKGREEN + '\nMade model and Loaded weight ! \n' + bcolors.ENDC)
 
     # 이걸로 threshold 높이면 accuracy도 달라지지 않을까
-    y = output_postprocessing(model.predict(X), 0.9)
+    pred = model.predict(X)
+    # ref라 값이 바뀜 -> deep copy
+    pred_with_prob = copy.deepcopy(pred)
+    y = output_postprocessing(pred, 0.9)
+
     # for i in range(len(y)):
     #     plt.plot(y[i], label='true')
     #     plt.show()
@@ -67,30 +72,57 @@ def anticipate_snore(file_name):
     # print(bcolors.OKGREEN + 'Finished Predict ! \n' + bcolors.ENDC)
     # print('filename',file_name,'len', len(y[y==1])>0)
     print(bcolors.OKGREEN + '\nNow you can check!!! ' + bcolors.ENDC)
-    return len(y[y==1])>0, len(y[y==1]), len(y)
+    return len(y[y==1])>0, len(y[y==1]), len(y), pred_with_prob
 
 
 #%%
 import os
 import pandas as pd
-df = pd.DataFrame([],columns = ['data','pred','whole','one_num','real'])
+
+df = pd.DataFrame([],columns = ['data','pred','whole','one_num','pred_with_prob','real'])
 for folder in os.listdir(os.path.join('.','test_data')):
     # 90% 이상의 확률로 맞을거라고 예측한 애가 얼마나 되는지 확인.
     if folder=="snore":
-        for file in os.listdir(os.path.join('.','test_data',folder)):
+        for i, file in enumerate(os.listdir(os.path.join('.','test_data',folder))):
             if file.endswith('mp3'):
+                print(i)
                 file_name = os.path.join('.', 'test_data', folder, file) 
-                pred, one_num, whole = anticipate_snore(file_name)
-                df= df.append({'data':file, 'pred':pred, 'whole' : whole,'one_num':one_num,'real':True},ignore_index=True)
+                pred, one_num, whole, pred_with_prob = anticipate_snore(file_name)
+                df= df.append({'data':file, 'pred':pred, 'whole' : whole,'one_num':one_num,'pred_with_prob':pred_with_prob,'real':True},ignore_index=True)
                 
     elif folder=="not_snore":
-        for file in os.listdir(os.path.join('.','test_data',folder)):
+        for i, file in enumerate(os.listdir(os.path.join('.','test_data',folder))):
             if file.endswith('mp3'):
+                print(i)
                 file_name = os.path.join('.', 'test_data', folder, file) 
-                pred, one_num, whole = anticipate_snore(file_name)
-                df= df.append({'data':file, 'pred':pred, 'whole' : whole,'one_num':one_num, 'real':False},ignore_index=True)
+                pred, one_num, whole, pred_with_prob = anticipate_snore(file_name)
+                df= df.append({'data':file, 'pred':pred, 'whole' : whole,'one_num':one_num, 'pred_with_prob':pred_with_prob,'real':False},ignore_index=True)
 
 # %%
 len(df[df['pred']==df['real']])/len(df)
+
+#%%
+# 0.572463768115942밖에 안나옴...
+df.loc[274,'pred_with_prob']>0.5
+
+# %%
+# 그냥 to_csv로 저장하면 Numpy object로 저장한거 바꾸는데 애를 먹는다.
+# df.to_csv('test_result.csv')
+# k = pd.read_csv('test_result.csv')
+df.to_pickle('test.csv')
+results = pd.read_pickle('test.csv')
+
+# %%
+# 원래는 1이 하나라도 있으면 true라고 했는데 얼마 정도 해야 1으로 판단하면 좋을까?
+# 몇개 이상 코골이라고 해야 true라고 하기
+for threshold in range(0, 60, 10):
+    print(f'-----threshold {threshold}')
+    for p in range(50,100,5):
+        results[f'pred_with_prob_{p}'] = results['pred_with_prob'].apply(lambda x: x>0.01*p).apply(lambda x: len(x[x==True])>threshold)
+        print(f'{p}%')
+        print(len(results[results[f'pred_with_prob_{p}']==results['real']])/len(results))
+# %%
+# 전체 크기가 190~210(1초에 약 20) 사이로 다양하다
+len(results.loc[3,'pred_with_prob'][0])
 
 # %%
