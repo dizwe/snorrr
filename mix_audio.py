@@ -35,7 +35,7 @@ def insert_audio_clip(background, audio_clip, previous_segments):
 
     # 이제 넣었으니까 집어넣기
     previous_segments.append(segment_time)
-    # pydub에 overlay 기능-> overlay말고 그냥 그부분을 덮어쓰는걸로 수정해보자
+    # 그냥 그부분을 덮어쓰는걸로 수정해보자
     new_background = background[:segment_time[0]]+audio_clip+background[segment_time[1]:]
     
     return new_background, segment_time
@@ -56,7 +56,7 @@ def insert_audio_clip_with_overlay(background, audio_clip, previous_segments):
 
     # 이제 넣었으니까 집어넣기
     previous_segments.append(segment_time)
-    # pydub에 overlay 기능-> overlay말고 그냥 그부분을 덮어쓰는걸로 수정해보자
+    # pydub에 overlay 기능
     new_background = background.overlay(audio_clip, position = segment_time[0])
     
     return new_background, segment_time
@@ -84,9 +84,11 @@ def create_training_data(background, activates, negatives, filename, kernel=15, 
     previous_segments = []
     input_ms = 0
 
-    while((input_ms/total_ms)<0.5):
-        # 몇개를 집어넣을거냐!
-        number_of_activates = np.random.randint(0, 4)
+    # 얼마 비율 이상 원하는 negative를 넣을 것인가?(아니면 계속 반복됨)
+    while((input_ms/total_ms)<0.3):
+        # 몇개를 집어넣을거냐! 0,2로 해서 빈도 좀 줄이기(background 더 자주 들을 수 있게)
+        number_of_activates = np.random.randint(1, 2)
+        # print('number_of_activates2',number_of_activates)
         # 파일들 중에서 랜덤으로 뽑기
         random_indices = np.random.randint(len(activates), size=number_of_activates)
         random_activates = [activates[i] for i in random_indices]
@@ -100,7 +102,9 @@ def create_training_data(background, activates, negatives, filename, kernel=15, 
                 input_ms += (segment_end - segment_start)
                 y = insert_ones(y, segment_time=segment_time, total_ms=total_ms)
 
-        number_of_negatives = np.random.randint(0, 4)
+        # 사람 목소리는 더 빈도가 적게 나오게 하자(0,1)
+        number_of_negatives = np.random.randint(0, 2)
+        # print('number_of_negatives2',number_of_negatives)
         random_indices = np.random.randint(len(negatives), size=number_of_negatives)
         random_negatives = [negatives[i] for i in random_indices]
 
