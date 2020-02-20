@@ -40,6 +40,27 @@ def insert_audio_clip(background, audio_clip, previous_segments):
     
     return new_background, segment_time
 
+def insert_audio_clip_with_overlay(background, audio_clip, previous_segments):
+    total_ms = len(background)
+    segment_ms = len(audio_clip)
+    # 실제로 segment 삽입할 위치를 찾기
+    segment_time = get_random_time_segment(segment_ms, total_ms)
+
+    count = 0 
+    # 이미 삽입된건 아닌지 previous_segments 확인하고 집어넣기(계속 시도해보고 안되면 그냥 포기)
+    while is_overlapping(segment_time, previous_segments):
+        segment_time = get_random_time_segment(segment_ms, total_ms)
+        count += 1
+        if count > 50 :
+            return background, None
+
+    # 이제 넣었으니까 집어넣기
+    previous_segments.append(segment_time)
+    # pydub에 overlay 기능-> overlay말고 그냥 그부분을 덮어쓰는걸로 수정해보자
+    new_background = background.overlay(audio_clip, position = segment_time[0])
+    
+    return new_background, segment_time
+
 def insert_ones(y, segment_time, total_ms=10000.0):
     # 전체 표시할 길이
     Ty = y.shape[1]
