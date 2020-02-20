@@ -3,6 +3,7 @@ import numpy as np
 from td_utils import graph_spectrogram
 
 def get_random_time_segment(segment_ms, total_ms=10000.0):
+    # 넣을 segment 범위 얻기
     segment_start = np.random.randint(low=0, high=total_ms-segment_ms)   # Make sure segment doesn't run past the 10sec background 
     segment_end = segment_start + segment_ms - 1
 
@@ -11,7 +12,7 @@ def get_random_time_segment(segment_ms, total_ms=10000.0):
 def is_overlapping(segment_time, previous_segments):
     segment_start, segment_end = segment_time
     overlap = False
-
+    # 이미 넣은 segment 범위 있는지 확인
     for previous_start, previous_end in previous_segments:
         if segment_start <= previous_end and segment_end >= previous_start:
             overlap = True
@@ -21,26 +22,34 @@ def is_overlapping(segment_time, previous_segments):
 def insert_audio_clip(background, audio_clip, previous_segments):
     total_ms = len(background)
     segment_ms = len(audio_clip)
+    # 실제로 segment 삽입할 위치를 찾기
     segment_time = get_random_time_segment(segment_ms, total_ms)
 
     count = 0 
+    # 이미 삽입된건 아닌지 previous_segments 확인하고 집어넣기(계속 시도해보고 안되면 그냥 포기)
     while is_overlapping(segment_time, previous_segments):
         segment_time = get_random_time_segment(segment_ms, total_ms)
         count += 1
         if count > 50 :
             return background, None
 
+    # 이제 넣었으니까 집어넣기
     previous_segments.append(segment_time)
+    # pydub에 overlay 기능-> overlay말고 그냥 그부분을 덮어쓰는걸로 수정해보자
     new_background = background.overlay(audio_clip, position = segment_time[0])
     
     return new_background, segment_time
 
 def insert_ones(y, segment_time, total_ms=10000.0):
+    # 전체 표시할 길이
     Ty = y.shape[1]
+    # segment_start = segment_time[0]
+    # segment_end = segment_time[1]
     segment_end_y = int(segment_time[1] * Ty / total_ms)
+    # total_ms에서 segment_end-segment_start 만큼의 길이 비만큼 Ty를 사용함
     segment_len = int((segment_time[1]-segment_time[0]) * Ty / total_ms)
     for i in range(segment_end_y + 1, segment_end_y + segment_len + 1):
-        if i < Ty:
+        if i < Ty: # Ty가 전체 길이인데 넘어가면 안되니까 미연에 방지
             y[0, i] = 1
     return y
 
@@ -55,15 +64,17 @@ def create_training_data(background, activates, negatives, filename, kernel=15, 
     input_ms = 0
 
     while((input_ms/total_ms)<0.5):
+        # 몇개를 집어넣을거냐!
         number_of_activates = np.random.randint(0, 4)
+        # 파일들 중에서 랜덤으로 뽑기
         random_indices = np.random.randint(len(activates), size=number_of_activates)
         random_activates = [activates[i] for i in random_indices]
         
         for random_activate in random_activates:
+            # ?? 뒤에 random 숫자는 왜 넣는거지?
             random_activate += np.random.randint(-2,5)
             background, segment_time = insert_audio_clip(background, random_activate, previous_segments)
-            if segment_time is not None:
-#                 print('active')
+            if segment_time is not None: 
                 segment_start, segment_end = segment_time
                 input_ms += (segment_end - segment_start)
                 y = insert_ones(y, segment_time=segment_time, total_ms=total_ms)
@@ -76,7 +87,6 @@ def create_training_data(background, activates, negatives, filename, kernel=15, 
             random_negative += np.random.randint(-2,5)
             background, segment_time = insert_audio_clip(background, random_negative, previous_segments)
             if segment_time is not None:
-#                 print('negative')
                 segment_start, segment_end = segment_time
                 input_ms += (segment_end - segment_start)
                 

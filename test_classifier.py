@@ -106,10 +106,11 @@ len(df[df['pred']==df['real']])/len(df)
 df.loc[274,'pred_with_prob']>0.5
 
 # %%
+import pandas as pd
 # 그냥 to_csv로 저장하면 Numpy object로 저장한거 바꾸는데 애를 먹는다.
 # df.to_csv('test_result.csv')
 # k = pd.read_csv('test_result.csv')
-df.to_pickle('test.csv')
+# df.to_pickle('test.csv')
 results = pd.read_pickle('test.csv')
 
 # %%
@@ -124,5 +125,8 @@ for threshold in range(0, 60, 10):
 # %%
 # 전체 크기가 190~210(1초에 약 20) 사이로 다양하다
 len(results.loc[3,'pred_with_prob'][0])
+
+# %%
+results[results['data'].str.find('744148')!=-1]
 
 # %%

@@ -25,7 +25,7 @@ for file in os.listdir(data_path):
 import os
 from pydub import AudioSegment
 
-data_path = os.path.join(os.getcwd(),'data','audio_label_clip','snore')
+data_path = os.path.join(os.getcwd(),'data','audio_label_clip','background')
 
 # new_data_path = os.path.join(os.getcwd(),'data','audio_label_clip','snore_lower')
 for file in os.listdir(data_path):
