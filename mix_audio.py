@@ -36,7 +36,7 @@ def insert_audio_clip(background, audio_clip, previous_segments):
     # 이제 넣었으니까 집어넣기
     previous_segments.append(segment_time)
     # pydub에 overlay 기능-> overlay말고 그냥 그부분을 덮어쓰는걸로 수정해보자
-    new_background = background.overlay(audio_clip, position = segment_time[0])
+    new_background = background[:segment_time[0]]+audio_clip+background[segment_time[1]:]
     
     return new_background, segment_time
 
