@@ -25,21 +25,21 @@ def make_model(input_shape):
     X = Conv1D(196, kernel_size=15, strides=4)(X_input)         # CONV1D
     X = BatchNormalization()(X)                                 # Batch normalization
     X = Activation('relu')(X)                                   # ReLu activation
-    X = Dropout(0.2)(X)                                         # dropout (use 0.8)
+    X = Dropout(0.4)(X)                                         # dropout (use 0.8)
 
     X = GRU(units = 128, return_sequences = True)(X)            # GRU (use 128 units and return the sequences)
-    X = Dropout(0.2)(X)                                         # dropout (use 0.8)
+    X = Dropout(0.4)(X)                                         # dropout (use 0.8)
     X = BatchNormalization()(X) # Batch normalization
     y = Activation("softmax")(X)
     X = multiply([y, X])
     
 
     X = GRU(units = 128, return_sequences = True)(X)            # GRU (use 128 units and return the sequences)
-    X = Dropout(0.2)(X)                                         # dropout (use 0.8)
+    X = Dropout(0.4)(X)                                         # dropout (use 0.8)
     X = BatchNormalization()(X) 
     y = Activation("softmax")(X)
     X = multiply([y, X])
-    X = Dropout(0.2)(X)                                         # dropout (use 0.8)
+    X = Dropout(0.4)(X)                                         # dropout (use 0.8)
 
     X = TimeDistributed(Dense(1, activation = "sigmoid"))(X)    # time distributed  (sigmoid)
 
@@ -56,7 +56,7 @@ def anticipate_snore(file_name):
     # print(bcolors.OKGREEN + '\nMade mel-spectrogram data ! ({})\n'.format(X.shape) + bcolors.ENDC)
 
     model = make_model(input_shape=(None, 128))
-    model.load_weights("my_model/my_model_weight.h5")
+    model.load_weights("my_model/my_model3_weights.h5")
     # print(bcolors.OKGREEN + '\nMade model and Loaded weight ! \n' + bcolors.ENDC)
 
     # 이걸로 threshold 높이면 accuracy도 달라지지 않을까
@@ -99,19 +99,16 @@ for folder in os.listdir(os.path.join('.','test_data')):
                 df= df.append({'data':file, 'pred':pred, 'whole' : whole,'one_num':one_num, 'pred_with_prob':pred_with_prob,'real':False},ignore_index=True)
 
 # %%
-len(df[df['pred']==df['real']])/len(df)
-
-#%%
 # 0.572463768115942밖에 안나옴...
-df.loc[274,'pred_with_prob']>0.5
+len(df[df['pred']==df['real']])/len(df)
 
 # %%
 import pandas as pd
 # 그냥 to_csv로 저장하면 Numpy object로 저장한거 바꾸는데 애를 먹는다.
 # df.to_csv('test_result.csv')
 # k = pd.read_csv('test_result.csv')
-# df.to_pickle('test.csv')
-results = pd.read_pickle('test.csv')
+df.to_pickle('test_result3.csv')
+results = pd.read_pickle('test_result3.csv')
 
 # %%
 # 원래는 1이 하나라도 있으면 true라고 했는데 얼마 정도 해야 1으로 판단하면 좋을까?
@@ -126,7 +123,24 @@ for threshold in range(0, 60, 10):
 # 전체 크기가 190~210(1초에 약 20) 사이로 다양하다
 len(results.loc[3,'pred_with_prob'][0])
 
+
 # %%
-results[results['data'].str.find('744148')!=-1]
+threshold= 0
+for p in range(50,100,5):
+        results[f'pred_with_prob_{p}'] = results['pred_with_prob'].apply(lambda x: x>0.01*p).apply(lambda x: len(x[x==True])>threshold)
+        print(f'{p}%')
+        print(len(results[results[f'pred_with_prob_{p}']==results['real']])/len(results))
+
+# %%
+print(len(results[(results['real']==True)&(results[f'pred_with_prob_50']==results['real'])])/len(results[results['real']==True]))
+
+# %%
+print(len(results[(results['real']==False)&(results[f'pred_with_prob_50']==results['real'])])/len(results[results['real']==False]))
+
+# %%
+# 이렇게 간단하게 테스트 가능
+from sklearn.metrics import classification_report
+print(classification_report(results['real'].apply(lambda x: bool(x)), results['pred_with_prob_50']))
+
 
 # %%
