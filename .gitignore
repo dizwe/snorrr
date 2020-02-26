@@ -1,6 +1,6 @@
 *.wav
 *.mp4
-
+*.mp3
 .DS_Store
 .ipynb_checkpoints/
 .vscode/
