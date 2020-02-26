@@ -4,18 +4,41 @@ from pydub import AudioSegment
 import librosa
 import numpy as np
 
-def graph_spectrogram(wav_file, minus=True, nfft=2048, hop=512):
+def graph_spectrogram(wav_file, minus=True, nfft=2048, hop=512, specshow=None):
     rate, data = get_wav_info(wav_file)
-    fs = rate # frequency
+    fs = rate # sr 44100
+    
+    S = librosa.core.stft(data, n_fft=nfft, hop_length=hop)
+    log_S = librosa.amplitude_to_db(np.abs(S), ref=np.max) # power spectrogram (amplitude squared) 
+    if specshow=="plus":
+        librosa.display.specshow(log_S, y_axis='log', x_axis='time')
+    if not minus:
+        return log_S
+    
+    # 위상 변환한 것 저장
+    data_minus = -1*data
+    S_minus = librosa.core.stft(data_minus, n_fft=nfft, hop_length=hop)
+    log_S_minus = librosa.amplitude_to_db(np.abs(S_minus), ref=np.max)
+    if specshow=="minus":
+        librosa.display.specshow(log_S_minus, y_axis='log', x_axis='time')
+    return log_S, log_S_minus
+
+def graph_melspectrogram(wav_file, minus=True, nfft=2048, hop=512, specshow=None):
+    rate, data = get_wav_info(wav_file)
+    fs = rate # sr 44100
     
     S = librosa.feature.melspectrogram(data, sr=fs, n_mels=128, n_fft=nfft, hop_length=hop)
-    log_S = librosa.power_to_db(S, ref=np.max)
+    log_S = librosa.power_to_db(S, ref=np.max) # power spectrogram (amplitude squared) 
+    if specshow=="plus":
+        librosa.display.specshow(log_S, x_axis='time',y_axis='mel', sr=fs,fmax=8000)
     if not minus:
         return log_S
     
     data_minus = -data
     S_minus = librosa.feature.melspectrogram(data_minus, sr=fs, n_mels=128, n_fft=nfft, hop_length=hop)
     log_S_minus = librosa.power_to_db(S_minus, ref=np.max)
+    if specshow=="minus":
+        librosa.display.specshow(log_S_minus, x_axis='time',y_axis='mel', sr=fs,fmax=8000)
     return log_S, log_S_minus
 
 # Load a wav file
@@ -68,7 +91,7 @@ def load_raw_audio_with_folder(audio_dir):
         elif category == "negative":
             for filename in os.listdir(category_dir): # folder
                 # negative는 librosa에서 cut 했는데 mp3로 저장했음에도 불구하고 wav로 되어있다.
-                if filename.endswith("mp3"):
+                if filename.endswith("wav"):
                     negative = AudioSegment.from_wav(os.path.join(category_dir, filename))
                     negatives.append(negative)
                     
