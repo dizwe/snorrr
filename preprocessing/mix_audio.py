@@ -76,11 +76,11 @@ def insert_ones(y, segment_time, total_ms=10000.0):
     return y
 
 def create_training_data(background, activates, negatives, filename, kernel=15, stride=4, use_mel=False):
-    background.export('./data/tmp.wav', format="wav")
+    background.export('../data/tmp.wav', format="wav")
     if use_mel==True:
-        mel = graph_melspectrogram('./data/tmp.wav', minus=False)
+        mel = graph_melspectrogram('../data/tmp.wav', minus=False)
     else:
-        mel = graph_spectrogram('./data/tmp.wav', minus=False)
+        mel = graph_spectrogram('../data/tmp.wav', minus=False)
     Ty = int((mel.shape[1]-kernel)/stride + 1)
 
     y = np.zeros((1, Ty))
