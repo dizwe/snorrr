@@ -10,12 +10,15 @@
 # YTID 있는 부분도 # 삭제
 import os 
 current_dir = os.getcwd() + '/' # 현재 디렉토리 얻기 
-# Male speech, man speaking 25784까지 Traffic noise, roadway noise 73500 
-a_class = 'Snoring'
-b_class = 'Traffic noise, roadway noise'
+# Male speech, man speaking 119078까지 Traffic noise, roadway noise 776892
+# Outside, rural or natural 130269
+
+a_class = 'Traffic noise, roadway noise'
+# b_class = 'Vehicle'
+# b_class = 'Traffic noise, roadway noise'
 # b_class = 'Male speech, man speaking' # snoring과 겹치는거 12개
 # b_class = 'Vehicle' # snoring과 겹치는거 2개
-# b_class = 'Outside, rural or natural'
+b_class = 'Outside, rural or natural'
 
 # %%
 ### 데이터 위에 주석 두줄 삭제해야 잘 됨 
@@ -54,10 +57,10 @@ from_check = False
 error_list = []
 for index, sr in a_class_df.iterrows():    
     ## 해당번호까지 크롤 했으면 다음거 부터 크롤 해야 하니까 일단 임시로 만들기
-    # if(from_check==False):
-    #     if (index==1962286):
-    #         from_check = True
-    #     continue
+    if(from_check==False):
+        if (index==776892):
+            from_check = True
+        continue
     print(sr)
     print(f'https://www.youtube.com/watch?v={sr["YTID"]}')
     try:
@@ -72,7 +75,7 @@ for index, sr in a_class_df.iterrows():
         subprocess.call(['ffmpeg','-ss',str(int(sr["start_seconds"])),'-i',
             os.path.join(f'{current_dir}data/{a_class}/unbalanced/' ,vids[0].default_filename),
             '-t',str(int(sr["end_seconds"]-sr["start_seconds"])),
-            os.path.join(f'{current_dir}data/{a_class}/unbalanced/audio/',f'{index}.mp3')
+            os.path.join(f'{current_dir}data/{a_class}/unbalanced/audio/',f'u{index}.mp3')
         ])
         subprocess.call(['mv',
             os.path.join(f'{current_dir}data/{a_class}/unbalanced/' ,vids[0].default_filename),
